@@ -25,6 +25,7 @@ def lambda_handler(event, context):
     cw_namespace = getenv("CLOUDWATCH_NAMESPACE", "CWAgent")
 
     create_default_alarms_flag = getenv("CREATE_DEFAULT_ALARMS", "true").lower()
+    skip_default_alarms_tag = getenv("SKIP_DEFAULT_ALARMS_TAG", "Skip_Default_Alarms").lower()
 
     append_dimensions = getenv("CLOUDWATCH_APPEND_DIMENSIONS", 'InstanceId, ImageId, InstanceType')
     append_dimensions = [dimension.strip() for dimension in append_dimensions.split(',')]
@@ -294,14 +295,14 @@ def lambda_handler(event, context):
                             logger.info(f"Processing region {region}")
                             # Call scan_and_process_alarm_tags for the account and region
                             scan_and_process_alarm_tags(create_alarm_tag, default_alarms, metric_dimensions_map, sns_topic_arn,
-                                                        cw_namespace, create_default_alarms_flag, alarm_separator, alarm_identifier, region, account_id)
+                                                        cw_namespace, create_default_alarms_flag, skip_default_alarms_tag, alarm_separator, alarm_identifier, region, account_id)
             else:
                 # Call scan_and_process_alarm_tags for single account
                 for region in target_regions:
                     logger.info(f"Processing region {region}")
                     # Call scan_and_process_alarm_tags for the account and region
                     scan_and_process_alarm_tags(create_alarm_tag, default_alarms, metric_dimensions_map, sns_topic_arn,
-                                                cw_namespace, create_default_alarms_flag, alarm_separator, alarm_identifier, region)
+                                                cw_namespace, create_default_alarms_flag, skip_default_alarms_tag, alarm_separator, alarm_identifier, region)
 
     except Exception as e:
         # If any other exceptions which we didn't expect are raised

@@ -146,6 +146,7 @@ Resources:
         Variables:
           ALARM_TAG: Create_Auto_Alarms
           CREATE_DEFAULT_ALARMS: true
+          SKIP_DEFAULT_ALARMS_TAG: Skip_Default_Alarms
           LOCAL_ACCOUNT_ID: !Ref AWS::AccountId
           CLOUDWATCH_NAMESPACE: CWAgent
           ALARM_CPU_HIGH_THRESHOLD: 75

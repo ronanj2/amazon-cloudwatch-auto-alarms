@@ -726,7 +726,7 @@ def delete_alarms(name, alarm_identifier, alarm_separator, region, account_id=No
             'Error deleting alarms for {}!: {}'.format(name, e))
 
 
-def scan_and_process_alarm_tags(create_alarm_tag, default_alarms, metric_dimensions_map, sns_topic_arn, cw_namespace, create_default_alarms_flag, alarm_separator, alarm_identifier, region, account_id=None):
+def scan_and_process_alarm_tags(create_alarm_tag, default_alarms, metric_dimensions_map, sns_topic_arn, cw_namespace, create_default_alarms_flag, skip_default_alarms_tag, alarm_separator, alarm_identifier, region, account_id=None):
     """
     Scans EC2 instances and processes alarm tags. If an account ID is provided,
     assumes a cross-account role to access the EC2 client.
@@ -752,10 +752,19 @@ def scan_and_process_alarm_tags(create_alarm_tag, default_alarms, metric_dimensi
                 if instance["State"]["Code"] > 16:
                     continue
 
-                if check_alarm_tag(instance["InstanceId"], create_alarm_tag, region, account_id):
+                has_create_alarm_tag = check_alarm_tag(instance["InstanceId"], create_alarm_tag, region, account_id)
+                create_instance_default_alarms_flag = create_default_alarms_flag
+
+                if has_create_alarm_tag:
+                    if create_instance_default_alarms_flag:                    
+                        has_skip_default_alarms_tag = check_alarm_tag(instance["InstanceId"], skip_default_alarms_tag, region, account_id)
+                    
+                        if has_skip_default_alarms_tag:
+                            create_instance_default_alarms_flag = False
+                        
                     process_alarm_tags(instance["InstanceId"], instance, default_filtered_alarms, wildcard_alarms,
-                                       metric_dimensions_map, sns_topic_arn, cw_namespace, create_default_alarms_flag,
-                                       alarm_separator, alarm_identifier, region, account_id)
+                                       metric_dimensions_map, sns_topic_arn, cw_namespace, create_instance_default_alarms_flag,
+                                       alarm_separator, alarm_identifier, region)
 
     except Exception as e:
         logger.error('Failure describing reservations: {}'.format(e))
